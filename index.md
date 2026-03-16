@@ -9,7 +9,7 @@ title: Home
 - 🔭 [天体観測の記録](observation/index.md)
 - 💻 技術ブログ
 - 📝 日記・思考メモ
-- 📚 宇宙物理の勉強ノート
+- 📚 [宇宙物理の勉強ノート](note\index.md)
 
 ## 最近の記事
 
