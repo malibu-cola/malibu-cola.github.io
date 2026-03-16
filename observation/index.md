@@ -13,3 +13,8 @@ title: 天体観測記録
 
 ## 天体観測での持ち物
 
+- 天体望遠鏡 Asker 60F
+- 三脚
+- 赤道儀 Adventurer GTi
+
+{% include top_button.html %}
