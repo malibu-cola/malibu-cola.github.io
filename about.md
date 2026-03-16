@@ -3,13 +3,19 @@ layout: default
 title: About
 ---
 
-# About
+## About
 
-宇宙物理学修士 × AIエンジニア4年目。  
-天体シミュレーションと科学計算に興味があります。
+- 東京理科大学大学院理工学研究科物理学専攻卒
+- 宇宙物理 天体シミュレーション 科学計算
+- AIエンジニア 機械学習 データサイエンス
 
-## スキル
+## 資格
 
-- Python / 科学計算
-- 宇宙物理・シミュレーション
-- AIエンジニアリング
+- 弓道参段
+- FE/AP
+- AWS Certified Cloud Practioner
+- Java SE Bronze
+- OSS-DB Silver
+- G検定
+- AtCoder 緑
+- 天文宇宙検定2級
