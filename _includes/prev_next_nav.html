@@ -1,0 +1,35 @@
+{% assign cur_filename = page.path | split: '/' | last %}
+{% assign cur_dir = page.path | remove: cur_filename %}
+
+{% assign siblings = site.pages
+   | where: "layout", "note_page"
+   | where_exp: "p", "p.path contains cur_dir"
+   | sort: "path" %}
+
+{% assign current_index = nil %}
+{% for p in siblings %}
+  {% if p.path == page.path %}
+    {% assign current_index = forloop.index0 %}
+  {% endif %}
+{% endfor %}
+
+{% if current_index != nil %}
+  {% assign siblings_size = siblings | size %}
+  {% assign prev_index = current_index | minus: 1 %}
+  {% assign next_index = current_index | plus: 1 %}
+
+  <div style="display:flex; justify-content:space-between; margin-top:2em; gap:1em;">
+    <div>
+      {% if current_index > 0 %}
+        {% assign prev_page = siblings[prev_index] %}
+        <a href="{{ prev_page.url | relative_url }}" style="display:inline-block; padding:0.5em 1em; background:#060f5f; color:#a0a8f0; border-radius:6px; text-decoration:none; box-shadow:2px 2px 6px rgba(0,0,0,0.4);">← 前ページ: {{ prev_page.title }}</a>
+      {% endif %}
+    </div>
+    <div>
+      {% if next_index < siblings_size %}
+        {% assign next_page = siblings[next_index] %}
+        <a href="{{ next_page.url | relative_url }}" style="display:inline-block; padding:0.5em 1em; background:#060f5f; color:#a0a8f0; border-radius:6px; text-decoration:none; box-shadow:2px 2px 6px rgba(0,0,0,0.4);">次ページ: {{ next_page.title }} →</a>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
