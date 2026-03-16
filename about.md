@@ -20,6 +20,18 @@ title: About
 - AtCoder 緑
 - 天文宇宙検定2級
 
+## 好きなこと
+
+- ヨルシカ・バンプ
+- 散歩・ランニング
+- 読書
+- ゴルフ
+
+## 最近興味ある事
+
+- [Solafune](https://solafune.com/ja)
+- [Tellus](https://www.tellusxdp.com/ja/)
+
 ## 参考
 
 - [EMANの物理学](https://eman-physics.net/)
