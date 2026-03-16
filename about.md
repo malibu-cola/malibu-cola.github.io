@@ -20,4 +20,11 @@ title: About
 - AtCoder 緑
 - 天文宇宙検定2級
 
+## 参考
+
+- [EMANの物理学](https://eman-physics.net/)
+- [結城浩](https://www.hyuki.com/)
+- [物理のかぎしっぽ](https://hooktail.sub.jp/index.html)
+- 
+
 {% include top_button.html %}

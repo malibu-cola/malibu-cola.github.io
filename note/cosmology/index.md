@@ -1,7 +1,7 @@
 ---
 layout: note_index
 title: 宇宙論
-description: 「人間が想像できることは、人間が必ず実現できる」
 ---
 
-「人間が想像できることは、人間が必ず実現できる」
+ここではシリーズ現代の天文学の[宇宙論I](https://www.nippyo.co.jp/shop/book/5926.html), [宇宙論II](https://www.nippyo.co.jp/shop/book/8039.html)の内容を読んで自分なりにまとめていきたいと思う。
+
