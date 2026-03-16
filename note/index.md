@@ -9,6 +9,7 @@ title: 勉強ノート
 
 ## カテゴリ
 
+- [天文宇宙検定1級](./astro-test1/index.md)
 - [宇宙論](./cosmology/index.md)
 
 {% include top_button.html %}
