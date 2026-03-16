@@ -9,5 +9,5 @@ title: 勉強ノート
 
 ## カテゴリ
 
-- [宇宙論](.\cosmology\index.md)
+- [宇宙論](./cosmology/index.md)
 
