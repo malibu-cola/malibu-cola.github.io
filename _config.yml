@@ -1,3 +1,9 @@
 title: タイトル
 description: 宇宙物理とAIエンジニアの記録
 theme: jekyll-theme-architect
+
+header_pages:
+  - about.md
+  - observation/index.md
+  - notes/index.md
+  - tweet\daily_tweet.md
