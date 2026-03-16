@@ -5,5 +5,5 @@ theme: jekyll-theme-architect
 header_pages:
   - about.md
   - observation/index.md
-  - notes/index.md
+  - note/index.md
   - tweet\daily_tweet.md
