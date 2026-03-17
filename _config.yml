@@ -2,6 +2,11 @@ title: 記録(仮)
 description: エンジニアの勉強と趣味の記録
 theme: jekyll-theme-architect
 
+collections:
+  tweets:
+    output: true
+    sort_by: name
+
 header_pages:
   - about.md
   - observation/index.md

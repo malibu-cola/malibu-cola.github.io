@@ -11,7 +11,9 @@ title: Home
 
 ## つぶやき
 
-{% for post in site.posts %}
+{% assign sorted_tweets = site.tweets | sort: "date" | reverse %}
+{% for tweet in sorted_tweets %}
 
-- [{{ post.title }}]({{ post.url }}) - {{ post.date | date: "%Y-%m-%d" }}
+- [{{ tweet.title }}]({{ tweet.url }}) - {{ tweet.date | date: "%Y-%m-%d" }}
+
 {% endfor %}
