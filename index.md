@@ -9,6 +9,10 @@ title: Home
 - 🔭 [天体観測の記録](observation/index.md)
 - 📚 [宇宙物理の勉強ノート](note/index.md)
 
+## 開発
+
+- ♋ [88星座テスト](https://malibu-cola.github.io/20260110_ConstellationTest/)
+
 ## つぶやき
 
 {% assign sorted_tweets = site.tweets | sort: "date" | reverse %}
