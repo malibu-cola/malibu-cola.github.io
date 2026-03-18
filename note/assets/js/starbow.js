@@ -93,10 +93,30 @@
 
   let beta = BETA_INIT;
 
-  // ── projection (equidistant azimuthal) ──────────────────────────────────
-  function project(thetaObs, phi_i) {
-    const r = Math.min((thetaObs / Math.PI) * RADIUS * 2, RADIUS);
-    return [CX + r * Math.sin(phi_i), CY - r * Math.cos(phi_i)];
+  // ── view direction ────────────────────────────────────────────────────
+  let viewTheta = 0;        // 0 = forward, π = rear
+  let viewPhi   = 0;
+  const VIEW_FOV = Math.PI; // half-angle shown in the disk (180° = full sphere)
+
+  // ── projection (equidistant azimuthal around view direction) ──────────
+  // Returns [x, y, angDist] or null if outside FOV.
+  function projectStar(starTheta, starPhi) {
+    // angular distance from view centre
+    const cosD = Math.cos(starTheta) * Math.cos(viewTheta)
+               + Math.sin(starTheta) * Math.sin(viewTheta) * Math.cos(starPhi - viewPhi);
+    const angDist = Math.acos(Math.max(-1, Math.min(1, cosD)));
+    if (angDist > VIEW_FOV) return null;
+
+    // position angle (azimuth in projected disk)
+    const sinDphi = Math.sin(starPhi - viewPhi);
+    const cosDphi = Math.cos(starPhi - viewPhi);
+    const posAngle = Math.atan2(
+      Math.sin(starTheta) * sinDphi,
+      Math.sin(viewTheta) * Math.cos(starTheta) - Math.cos(viewTheta) * Math.sin(starTheta) * cosDphi
+    );
+
+    const r = (angDist / VIEW_FOV) * RADIUS;
+    return [CX + r * Math.sin(posAngle), CY - r * Math.cos(posAngle), angDist];
   }
 
   // ── drawing ─────────────────────────────────────────────────────────────
@@ -136,13 +156,15 @@
       ctx.fillText(label, CX + frac * RADIUS + 4, CY - 2);
     }
 
-    // direction labels
+    // view direction label
+    const viewDeg = (viewTheta * 180 / Math.PI).toFixed(1);
     ctx.textAlign = "center";
-    ctx.fillStyle = "#7896ff";
+    ctx.fillStyle = "#aaa";
     ctx.font = "12px monospace";
-    ctx.fillText("Forward (0°)", CX, CY - RADIUS - 8);
-    ctx.fillStyle = "#ff8844";
-    ctx.fillText("Rear (180°)", CX, CY + RADIUS + 16);
+    ctx.fillText(`View: θ=${viewDeg}°`, CX, CY - RADIUS - 8);
+    ctx.fillStyle = "#555";
+    ctx.font = "11px monospace";
+    ctx.fillText("(drag sky to look around)", CX, CY + RADIUS + 16);
 
     // stars — clip to circle
     ctx.save();
@@ -154,7 +176,9 @@
       const tObs = aberration(thetaRest[i], beta);
       const wl   = Math.max(200, Math.min(950, dopplerWL(tObs, beta)));
       const [r, g, b] = wlToRGB(wl);
-      const [x, y] = project(tObs, phi[i]);
+      const p = projectStar(tObs, phi[i]);
+      if (!p) continue;
+      const [x, y] = p;
 
       ctx.fillStyle = `rgb(${r},${g},${b})`;
       ctx.fillRect(x - 1, y - 1, 2, 2);
@@ -204,7 +228,7 @@
     ctx.fillStyle = "#555";
     ctx.font = "11px monospace";
     ctx.textAlign = "center";
-    ctx.fillText("Drag slider or use ←/→ (±0.005)  ↑/↓ (±0.0001)", W / 2, H - 6);
+    ctx.fillText("β: slider / ←→↑↓   View: drag sky / WASD   R: reset view", W / 2, H - 6);
   }
 
   function roundRect(ctx, x, y, w, h, r) {
@@ -222,56 +246,99 @@
   }
 
   // ── interaction ─────────────────────────────────────────────────────────
+  function canvasCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+    return [
+      (e.clientX - rect.left) * (W / rect.width),
+      (e.clientY - rect.top)  * (H / rect.height),
+    ];
+  }
+
   function setBetaFromX(clientX) {
     const rect = canvas.getBoundingClientRect();
-    const scaleX = W / rect.width;
-    const mx = (clientX - rect.left) * scaleX;
+    const mx = (clientX - rect.left) * (W / rect.width);
     const t = (mx - SL_X) / SL_W;
     beta = Math.max(0, Math.min(0.9999, t * 0.9999));
     draw();
   }
 
-  let dragging = false;
+  let dragMode = null; // "slider" | "sky" | null
+  let lastPointerX = 0, lastPointerY = 0;
+
+  function isInSlider(mx, my) {
+    return my >= SL_Y - 12 && my <= SL_Y + SL_H + 12 &&
+           mx >= SL_X - 10 && mx <= SL_X + SL_W + 10;
+  }
+
+  function isInSky(mx, my) {
+    const dx = mx - CX, dy = my - CY;
+    return Math.sqrt(dx * dx + dy * dy) <= RADIUS + 5 && my < H - PANEL_H;
+  }
 
   canvas.addEventListener("pointerdown", function (e) {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = W / rect.width;
-    const scaleY = H / rect.height;
-    const mx = (e.clientX - rect.left) * scaleX;
-    const my = (e.clientY - rect.top)  * scaleY;
-    if (my >= SL_Y - 12 && my <= SL_Y + SL_H + 12 &&
-        mx >= SL_X - 10 && mx <= SL_X + SL_W + 10) {
-      dragging = true;
+    const [mx, my] = canvasCoords(e);
+    if (isInSlider(mx, my)) {
+      dragMode = "slider";
       canvas.setPointerCapture(e.pointerId);
       setBetaFromX(e.clientX);
+    } else if (isInSky(mx, my)) {
+      dragMode = "sky";
+      canvas.setPointerCapture(e.pointerId);
+      lastPointerX = e.clientX;
+      lastPointerY = e.clientY;
     }
   });
 
   canvas.addEventListener("pointermove", function (e) {
-    if (dragging) setBetaFromX(e.clientX);
+    if (dragMode === "slider") {
+      setBetaFromX(e.clientX);
+    } else if (dragMode === "sky") {
+      const rect = canvas.getBoundingClientRect();
+      const sensitivity = (VIEW_FOV * 2) / rect.height;
+      const dx = e.clientX - lastPointerX;
+      const dy = e.clientY - lastPointerY;
+      lastPointerX = e.clientX;
+      lastPointerY = e.clientY;
+
+      viewPhi   -= dx * sensitivity;
+      viewTheta += dy * sensitivity;
+      viewTheta  = Math.max(0, Math.min(Math.PI, viewTheta));
+      // normalise phi to [0, 2π)
+      viewPhi = ((viewPhi % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+      draw();
+    }
   });
 
-  canvas.addEventListener("pointerup", function () { dragging = false; });
-  canvas.addEventListener("pointercancel", function () { dragging = false; });
+  canvas.addEventListener("pointerup",     function () { dragMode = null; });
+  canvas.addEventListener("pointercancel",  function () { dragMode = null; });
 
-  // keyboard
+  // keyboard: arrows for beta, WASD / hjkl for view direction
   document.addEventListener("keydown", function (e) {
     const step = 0.005, fine = 0.0001;
-    if      (e.key === "ArrowRight") beta = Math.min(0.9999, beta + step);
-    else if (e.key === "ArrowLeft")  beta = Math.max(0, beta - step);
-    else if (e.key === "ArrowUp")    beta = Math.min(0.9999, beta + fine);
-    else if (e.key === "ArrowDown")  beta = Math.max(0, beta - fine);
-    else return;
-    e.preventDefault();
-    draw();
+    const viewStep = 5 * Math.PI / 180; // 5°
+    let handled = true;
+
+    switch (e.key) {
+      // beta control
+      case "ArrowRight": beta = Math.min(0.9999, beta + step); break;
+      case "ArrowLeft":  beta = Math.max(0, beta - step);      break;
+      case "ArrowUp":    beta = Math.min(0.9999, beta + fine);  break;
+      case "ArrowDown":  beta = Math.max(0, beta - fine);       break;
+      // view direction
+      case "w": case "k": viewTheta = Math.max(0, viewTheta - viewStep);          break;
+      case "s": case "j": viewTheta = Math.min(Math.PI, viewTheta + viewStep);     break;
+      case "a": case "h": viewPhi   = (viewPhi + viewStep) % (2 * Math.PI);        break;
+      case "d": case "l": viewPhi   = (viewPhi - viewStep + 2 * Math.PI) % (2 * Math.PI); break;
+      case "r":           viewTheta = 0; viewPhi = 0; break; // reset view
+      default: handled = false;
+    }
+    if (handled) { e.preventDefault(); draw(); }
   });
 
-  // touch-friendly: prevent scroll when dragging slider
+  // touch-friendly: prevent scroll when interacting
   canvas.addEventListener("touchstart", function (e) {
-    const rect = canvas.getBoundingClientRect();
-    const scaleY = H / rect.height;
-    const my = (e.touches[0].clientY - rect.top) * scaleY;
-    if (my >= SL_Y - 20 && my <= SL_Y + SL_H + 20) {
+    const [, my] = canvasCoords(e.touches[0]);
+    if (my >= SL_Y - 20 && my <= SL_Y + SL_H + 20 || my < H - PANEL_H) {
       e.preventDefault();
     }
   }, { passive: false });
