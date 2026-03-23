@@ -10,6 +10,7 @@ title: 天体観測記録
 | 日付      | 天体 | 場所 | メモ     |
 |-----------|------|------|----------|
 | 2026-03-12|  しし座の三つ子 | [鹿野山九十九谷展望公園](https://maps.app.goo.gl/jZg9z2SCBvnLswj29) | [日記](https://ameblo.jp/ryocky26/entry-12959551765.html) |
+| 2026-03-21|  北斗七星 | 松島 | [日記](https://ameblo.jp/ryocky26/entry-12960696277.html) |
 
 ## 天体観測での持ち物
 
