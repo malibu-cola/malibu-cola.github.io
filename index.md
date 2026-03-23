@@ -12,6 +12,7 @@ title: Home
 ## 開発
 
 - ♋ [88星座テスト](https://malibu-cola.github.io/20260110_ConstellationTest/)
+- 🌎 [今日の太陽系地図](https://malibu-cola.github.io/solar_3d_map/)
 
 ## つぶやき
 
