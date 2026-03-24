@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>フリードマン方程式ソルバー</title>
+<style>
+  body { font-family: sans-serif; padding: 1rem; background: #fff; color: #111; }
+  @media (prefers-color-scheme: dark) { body { background: #1a1a1a; color: #eee; } }
+  button { cursor: pointer; }
+  label { font-size: 13px; color: #666; }
+</style>
+</head>
+<body>
+
+<div style="padding:1rem 0;">
+<div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:1.5rem;align-items:flex-end;">
+  <div>
+    <div style="font-size:13px;color:#666;margin-bottom:6px;">曲率 k</div>
+    <div style="display:flex;gap:6px;">
+      <button id="bkp" onclick="tog('k',1)"  style="padding:5px 14px;font-size:13px;border-radius:8px;border:1.5px solid #378ADD;background:#378ADD;color:#fff;">k=+1</button>
+      <button id="bk0" onclick="tog('k',0)"  style="padding:5px 14px;font-size:13px;border-radius:8px;border:1.5px solid #378ADD;background:#378ADD;color:#fff;">k=0</button>
+      <button id="bkm" onclick="tog('k',-1)" style="padding:5px 14px;font-size:13px;border-radius:8px;border:1.5px solid #378ADD;background:#378ADD;color:#fff;">k=−1</button>
+    </div>
+  </div>
+  <div>
+    <div style="font-size:13px;color:#666;margin-bottom:6px;">宇宙項 Λ</div>
+    <div style="display:flex;gap:6px;">
+      <button id="bl0" onclick="tog('l',0)"  style="padding:5px 14px;font-size:13px;border-radius:8px;border:1.5px solid #378ADD;background:#378ADD;color:#fff;">Λ=0</button>
+      <button id="blp" onclick="tog('l',1)"  style="padding:5px 14px;font-size:13px;border-radius:8px;border:1.5px solid #378ADD;background:#378ADD;color:#fff;">Λ&gt;0</button>
+      <button id="blm" onclick="tog('l',-1)" style="padding:5px 14px;font-size:13px;border-radius:8px;border:1.5px solid #666;background:transparent;color:#111;">Λ&lt;0</button>
+    </div>
+  </div>
+  <div style="flex:1;min-width:200px;">
+    <div style="font-size:13px;color:#666;margin-bottom:6px;">Ω<sub>m</sub> = <span id="omv">0.30</span></div>
+    <input type="range" id="oms" min="0.05" max="2.0" step="0.05" value="0.30" style="width:100%;"
+      oninput="document.getElementById('omv').textContent=(+this.value).toFixed(2);draw()">
+  </div>
+</div>
+
+<canvas id="cv" style="width:100%;border:0.5px solid rgba(128,128,128,0.2);border-radius:8px;display:block;"></canvas>
+<div id="leg" style="display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12px;color:#666;"></div>
+<p style="font-size:12px;color:#999;margin-top:8px;margin-bottom:0;">
+  RK4数値積分。a(0)=0.01、H₀=1 で正規化。破線: Λ&gt;0、点線: Λ&lt;0。
+</p>
+</div>
+
+<script>
+const selK = new Set([1, 0, -1]);
+const selL = new Set([0, 1]);
+
+const SERIES = [
+  { k:  1, ls:  0, col: '#E24B4A', dash: null },
+  { k:  0, ls:  0, col: '#378ADD', dash: null },
+  { k: -1, ls:  0, col: '#1D9E75', dash: null },
+  { k:  1, ls:  1, col: '#D4537E', dash: [8, 4] },
+  { k:  0, ls:  1, col: '#7F77DD', dash: [8, 4] },
+  { k: -1, ls:  1, col: '#BA7517', dash: [8, 4] },
+  { k:  1, ls: -1, col: '#D85A30', dash: [3, 4] },
+  { k:  0, ls: -1, col: '#888780', dash: [3, 4] },
+  { k: -1, ls: -1, col: '#3B6D11', dash: [3, 4] },
+];
+
+function adot(a, k, L, Om) {
+  if (a <= 0) return 0;
+  const v = Om / a + L * a * a / 3 - k;
+  return v <= 0 ? 0 : Math.sqrt(v);
+}
+
+function rk4step(a, k, L, Om, dt, sign) {
+  const f = x => sign * adot(x, k, L, Om);
+  const k1 = f(a);
+  const k2 = f(a + 0.5 * dt * k1);
+  const k3 = f(a + 0.5 * dt * k2);
+  const k4 = f(a + dt * k3);
+  return (dt / 6) * (k1 + 2 * k2 + 2 * k3 + k4);
+}
+
+function solveA(k, ls, Om) {
+  const L = ls === 1 ? 0.5 : ls === -1 ? -0.5 : 0;
+  const dt = 0.002;
+  const pts = [];
+  let a = 0.01, t = 0, sign = 1;
+
+  for (let i = 0; i < 10000; i++) {
+    pts.push([t, a]);
+    if (t > 16 || a > 14) break;
+    if (sign === -1 && a < 0.005) break;
+
+    const vel = sign * adot(a, k, L, Om);
+
+    if (sign === 1 && vel === 0 && t > 0.1) {
+      sign = -1;
+    }
+
+    if (sign === 1) {
+      const velNext = adot(a + dt * vel, k, L, Om);
+      if (velNext === 0 && t > 0.1) {
+        sign = -1;
+        a = Math.max(0.001, a + rk4step(a, k, L, Om, dt, 1));
+        t += dt;
+        continue;
+      }
+    }
+
+    const da = rk4step(a, k, L, Om, dt, sign);
+    a = Math.max(0.0001, a + da);
+    t += dt;
+  }
+  return pts;
+}
+
+const cv = document.getElementById('cv');
+const W = 800, H = 420;
+cv.width = W; cv.height = H;
+const PAD = { t: 20, r: 20, b: 50, l: 55 };
+const PW = W - PAD.l - PAD.r;
+const PH = H - PAD.t - PAD.b;
+const TMAX = 12, AMAX = 8;
+
+function tx(t) { return PAD.l + t / TMAX * PW; }
+function ty(a) { return PAD.t + PH - (a / AMAX * PH); }
+
+function draw() {
+  const ctx = cv.getContext('2d');
+  const Om = +document.getElementById('oms').value;
+  const dark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  const bg = dark ? '#1a1a1a' : '#ffffff';
+  const axCol = dark ? '#666' : '#aaa';
+  const gridCol = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+  const labelCol = dark ? '#999' : '#666';
+
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // グリッド
+  ctx.strokeStyle = gridCol; ctx.lineWidth = 0.5;
+  for (let a = 0; a <= AMAX; a += 2) {
+    ctx.beginPath(); ctx.moveTo(PAD.l, ty(a)); ctx.lineTo(W - PAD.r, ty(a)); ctx.stroke();
+  }
+  for (let t = 0; t <= TMAX; t += 2) {
+    ctx.beginPath(); ctx.moveTo(tx(t), PAD.t); ctx.lineTo(tx(t), H - PAD.b); ctx.stroke();
+  }
+
+  // 軸
+  ctx.strokeStyle = axCol; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(PAD.l, PAD.t); ctx.lineTo(PAD.l, H - PAD.b); ctx.lineTo(W - PAD.r, H - PAD.b);
+  ctx.stroke();
+
+  // 軸ラベル
+  ctx.fillStyle = labelCol; ctx.font = '12px sans-serif';
+  ctx.textAlign = 'center';
+  for (let t = 0; t <= TMAX; t += 2) ctx.fillText(t, tx(t), H - PAD.b + 18);
+  ctx.textAlign = 'right';
+  for (let a = 0; a <= AMAX; a += 2) ctx.fillText(a, PAD.l - 6, ty(a) + 4);
+  ctx.save();
+  ctx.translate(14, PAD.t + PH / 2); ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center'; ctx.fillText('スケール因子 a(t)', 0, 0);
+  ctx.restore();
+  ctx.textAlign = 'center';
+  ctx.fillText('時間 t  (H₀⁻¹)', PAD.l + PW / 2, H - 6);
+
+  // 曲線の描画
+  const legItems = [];
+  for (const s of SERIES) {
+    if (!selK.has(s.k) || !selL.has(s.ls)) continue;
+    const pts = solveA(s.k, s.ls, Om);
+    ctx.beginPath();
+    ctx.strokeStyle = s.col; ctx.lineWidth = 2;
+    ctx.setLineDash(s.dash || []);
+    let first = true;
+    for (const [t, a] of pts) {
+      if (t > TMAX) break;
+      const x = tx(t), y = ty(Math.min(a, AMAX + 0.5));
+      if (y < PAD.t - 2) { first = true; continue; }
+      first ? (ctx.moveTo(x, y), first = false) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    const kl = s.k === 1 ? '+1' : s.k === -1 ? '−1' : '0';
+    const ll = s.ls === 1 ? 'Λ>0' : s.ls === -1 ? 'Λ<0' : 'Λ=0';
+    legItems.push({ label: `k=${kl}, ${ll}`, col: s.col, dash: s.dash });
+  }
+
+  // 凡例
+  document.getElementById('leg').innerHTML = legItems.map(it => {
+    const ds = it.dash
+      ? `border-top:2px dashed ${it.col}`
+      : `border-top:2px solid ${it.col}`;
+    return `<span style="display:flex;align-items:center;gap:5px;">` +
+           `<span style="${ds};width:18px;display:inline-block;vertical-align:middle;"></span>` +
+           `${it.label}</span>`;
+  }).join('');
+}
+
+function tog(type, val) {
+  const sel = type === 'k' ? selK : selL;
+  if (sel.has(val) && sel.size === 1) return;
+  sel.has(val) ? sel.delete(val) : sel.add(val);
+  const ids = {
+    k: { 1: 'bkp', 0: 'bk0', [-1]: 'bkm' },
+    l: { 0: 'bl0', 1: 'blp', [-1]: 'blm' }
+  };
+  for (const [v, id] of Object.entries(ids[type])) {
+    const on = (type === 'k' ? selK : selL).has(+v);
+    const el = document.getElementById(id);
+    el.style.background = on ? '#378ADD' : 'transparent';
+    el.style.color = on ? '#fff' : '#111';
+    el.style.borderColor = on ? '#378ADD' : '#666';
+  }
+  draw();
+}
+
+draw();
+window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', draw);
+</script>
+</body>
+</html>
