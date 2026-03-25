@@ -9,7 +9,10 @@
 {% if chapter_pages.size > 0 %}
 <ol style="line-height:2;">
   {% for p in chapter_pages %}
+  {% assign relative_path = p.path | remove: cur_dir %}
+  {% unless relative_path contains '/' %}
   <li><a href="{{ p.url | relative_url }}">{{ p.title }}</a></li>
+  {% endunless %}
   {% endfor %}
 </ol>
 {% endif %}
