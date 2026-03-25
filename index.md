@@ -5,9 +5,9 @@ title: Home
 
 ## Welcome
 
-- 👤 [プロフィール](about.md)
-- 🔭 [天体観測の記録](observation/index.md)
-- 📚 [宇宙物理の勉強ノート](note/index.md)
+- 👤 [プロフィール](about)
+- 🔭 [天体観測の記録](observation/)
+- 📚 [宇宙物理の勉強ノート](note/)
 
 ## 開発
 
