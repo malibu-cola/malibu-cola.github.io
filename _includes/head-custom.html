@@ -9,11 +9,18 @@
 </script>
 <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 
-<!-- Layout Override -->
+<!-- Layout Override (scoped to note pages) -->
 <style>
-.inner        { width: min(1200px, 96vw) !important; }
-#main-content { width: min(900px,  70vw) !important; font-size: 16px; }
+.page-note .inner        { width: min(1200px, 96vw); }
+.page-note #main-content { width: min(900px,  70vw); font-size: 16px; }
 </style>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (document.querySelector('.note-card-grid')) {
+      document.body.classList.add('page-note');
+    }
+  });
+</script>
 
 <!-- Note Card Grid -->
 <style>
@@ -82,6 +89,12 @@
   border-radius: 6px;
   overflow: hidden;
 }
+button.note-toggle-header {
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
 .note-toggle-header {
   display: flex;
   align-items: center;
@@ -124,20 +137,22 @@
 </style>
 
 <script>
-function noteToggleCard(el, event) {
+function noteToggleCard(btn, event) {
   event.stopPropagation();
-  var header  = el.querySelector('.note-toggle-header');
-  var content = el.querySelector('.note-toggle-content');
-  var arrow   = el.querySelector('.note-toggle-arrow');
+  var header  = btn.closest('.note-toggle-area').querySelector('.note-toggle-header');
+  var content = btn.closest('.note-toggle-area').querySelector('.note-toggle-content');
+  var arrow   = btn.closest('.note-toggle-area').querySelector('.note-toggle-arrow');
   var isOpen  = content.classList.contains('open');
   if (isOpen) {
     content.classList.remove('open');
     header.classList.remove('open');
     arrow.classList.remove('open');
+    header.setAttribute('aria-expanded', 'false');
   } else {
     content.classList.add('open');
     header.classList.add('open');
     arrow.classList.add('open');
+    header.setAttribute('aria-expanded', 'true');
   }
 }
 </script>

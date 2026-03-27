@@ -16,11 +16,10 @@
 
 ## ローカルプレビュー
 
-1. Ruby (3.x 以上) と Bundler/Jekyll をインストール: `jekyll serve --livereload``.
-2. プロジェクト直下で `jekyll serve --livereload`.
-3. ブラウザで <http://localhost:4000> を開き、変更を確認。
-
-※ グローバルに gem を入れたくない場合は、自分で `Gemfile` を追加し `bundle exec jekyll serve` を実行してください。
+1. Ruby (3.x 以上) と Bundler をインストール: `gem install bundler`.
+2. プロジェクト直下で `bundle install` を実行し、依存 gem を導入。
+3. `bundle exec jekyll serve --livereload` でローカルサーバーを起動。
+4. ブラウザで <http://localhost:4000> を開き、変更を確認。
 
 ## デプロイ
 
