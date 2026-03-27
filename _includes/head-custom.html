@@ -8,3 +8,136 @@
   };
 </script>
 <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+<!-- Layout Override -->
+<style>
+.inner        { width: min(1200px, 96vw) !important; }
+#main-content { width: min(900px,  70vw) !important; font-size: 16px; }
+</style>
+
+<!-- Note Card Grid -->
+<style>
+.note-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+  align-items: start;
+}
+@media (max-width: 700px) {
+  .note-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .note-card-grid { grid-template-columns: 1fr; }
+}
+
+.note-topic-card {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  text-decoration: none;
+  display: block;
+}
+.note-topic-card:hover { border-color: #4a4a8a; }
+
+.note-card-image {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  position: relative;
+  overflow: hidden;
+}
+.note-card-image.grad-astro   { background: linear-gradient(135deg, #0d1b3e 0%, #1a3a6e 100%); }
+.note-card-image.grad-cosmo   { background: linear-gradient(135deg, #1a0d2e 0%, #3d1a60 100%); }
+.note-card-image.grad-star    { background: linear-gradient(135deg, #0d0d2b 0%, #2a1a4a 100%); }
+.note-card-image.grad-galaxy  { background: linear-gradient(135deg, #1a0d2e 0%, #3d1a60 100%); }
+.note-card-image.grad-default { background: linear-gradient(135deg, #1a1a1a 0%, #333 100%); }
+
+.note-card-image img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.55;
+}
+
+.note-card-body { padding: 8px 12px 10px; }
+.note-card-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e0e0f0;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.note-toggle-area {
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.note-toggle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: #8888bb;
+  background: #0f0f1e;
+  border-bottom: 1px solid transparent;
+  user-select: none;
+}
+.note-toggle-header.open { border-bottom: 1px solid #2a2a4a; }
+.note-toggle-arrow { font-size: 9px; transition: transform 0.2s; display: inline-block; }
+.note-toggle-arrow.open { transform: rotate(90deg); }
+
+.note-toggle-content {
+  max-height: 0;
+  overflow: hidden;
+  padding: 0 10px;
+  background: #0d0d1e;
+  opacity: 0;
+  transition: max-height 0.28s ease, padding 0.28s ease, opacity 0.2s ease;
+}
+.note-toggle-content.open {
+  max-height: 600px;
+  padding: 8px 10px;
+  opacity: 1;
+}
+
+.note-sub-list { list-style: none; margin: 0; padding: 0; }
+.note-sub-list li { font-size: 12px; padding: 3px 0; display: flex; align-items: center; gap: 6px; }
+.note-sub-list li::before { content: "•"; color: #4a4a7a; flex-shrink: 0; }
+.note-sub-list a { color: #7a9fd4; text-decoration: none; }
+.note-sub-list a:hover { color: #aac4e8; text-decoration: underline; }
+
+.note-card-link {
+  display: block;
+  text-decoration: none;
+}
+</style>
+
+<script>
+function noteToggleCard(el, event) {
+  event.stopPropagation();
+  var header  = el.querySelector('.note-toggle-header');
+  var content = el.querySelector('.note-toggle-content');
+  var arrow   = el.querySelector('.note-toggle-arrow');
+  var isOpen  = content.classList.contains('open');
+  if (isOpen) {
+    content.classList.remove('open');
+    header.classList.remove('open');
+    arrow.classList.remove('open');
+  } else {
+    content.classList.add('open');
+    header.classList.add('open');
+    arrow.classList.add('open');
+  }
+}
+</script>
