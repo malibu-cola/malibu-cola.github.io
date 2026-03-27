@@ -25,6 +25,28 @@
 
 メインブランチ (または GitHub Pages で指定したブランチ) に push すると、GitHub が自動でビルドし公開します。 `_config.yml` の `header_pages` にページを列挙することで、ナビゲーションメニューを制御できます。
 
+## ノートブックの HTML 化
+
+`notebook/` 配下の Jupyter Notebook (.ipynb) は、HTML に変換して `<iframe>` でノートページに埋め込む方式を採用しています。
+
+1. ノートブックを開いてすべてのセルを実行し、出力を保存する。
+2. プロジェクト直下の `.venv` に `nbconvert` が含まれているので、以下のコマンドで変換する。
+
+   ```bash
+   # Windows (PowerShell / コマンドプロンプト)
+   .venv\Scripts\python.exe -m nbconvert --to html notebook/<notebook_name>.ipynb
+
+   # Git Bash / WSL
+   .venv/Scripts/python.exe -m nbconvert --to html notebook/<notebook_name>.ipynb
+   ```
+
+3. 生成された `notebook/<notebook_name>.html` をコミットする。
+4. 対応するノートの Markdown ファイルに以下の `<iframe>` を追記する。
+
+   ```html
+   <iframe src="/notebook/<notebook_name>.html" width="100%" height="800" style="border:1px solid #ccc; border-radius:4px;"></iframe>
+   ```
+
 ## 執筆メモ
 
 - 新しい記事は `_posts/YYYY-MM-DD-my-title.md` 形式で作成し、Front Matter に `layout: post` と `title`, `date` を指定。
