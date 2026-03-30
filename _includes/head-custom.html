@@ -1,3 +1,122 @@
+<!-- Quiz Component -->
+<script src="{{ '/note/assets/js/quiz.js' | relative_url }}" defer></script>
+<style>
+.quiz-block {
+  background: #0f0f1e;
+  border: 1px solid #2a2a4a;
+  border-radius: 10px;
+  padding: 20px 24px 16px;
+  margin: 24px 0;
+  font-size: 15px;
+}
+
+.quiz-question {
+  color: #e0e0f0;
+  line-height: 1.7;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.quiz-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quiz-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: #c8c8e8;
+  font-family: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  line-height: 1.6;
+}
+.quiz-choice:hover:not(:disabled) {
+  border-color: #5a5aaa;
+  background: #20203e;
+}
+.quiz-choice:disabled {
+  cursor: default;
+}
+
+.quiz-choice-label {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #2a2a4a;
+  color: #8888bb;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.quiz-choice.quiz-correct {
+  border-color: #3a8a5a;
+  background: #0d2a1a;
+}
+.quiz-choice.quiz-correct .quiz-choice-label {
+  background: #3a8a5a;
+  color: #fff;
+}
+
+.quiz-choice.quiz-incorrect {
+  border-color: #8a3a3a;
+  background: #2a0d0d;
+}
+.quiz-choice.quiz-incorrect .quiz-choice-label {
+  background: #8a3a3a;
+  color: #fff;
+}
+
+.quiz-feedback {
+  margin-top: 14px;
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.quiz-feedback:empty { display: none; }
+
+.quiz-verdict-label {
+  padding: 7px 14px;
+  font-weight: bold;
+  font-size: 14px;
+}
+.quiz-verdict-correct .quiz-verdict-label {
+  background: #0d3a1f;
+  color: #5aca8a;
+  border-bottom: 1px solid #1a5a30;
+}
+.quiz-verdict-incorrect .quiz-verdict-label {
+  background: #3a0d0d;
+  color: #ca5a5a;
+  border-bottom: 1px solid #5a1a1a;
+}
+
+.quiz-explanation-text {
+  padding: 12px 14px;
+  color: #c0c0de;
+  background: #0f0f1e;
+  border: 1px solid #2a2a4a;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+}
+</style>
+
 <!-- MathJax -->
 <script>
   MathJax = {
