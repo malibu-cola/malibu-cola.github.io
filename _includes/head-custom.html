@@ -136,6 +136,100 @@ button.note-toggle-header {
 }
 </style>
 
+<!-- News Page -->
+<style>
+.news-container { margin-top: 16px; }
+
+.news-card {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: border-color 0.15s;
+}
+.news-card:hover { border-color: #4a4a8a; }
+
+.news-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.news-source {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.news-date {
+  color: #8888bb;
+  font-size: 12px;
+}
+
+.news-title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.news-title a {
+  color: #7a9fd4;
+  text-decoration: none;
+}
+.news-title a:hover {
+  color: #aac4e8;
+  text-decoration: underline;
+}
+
+.news-summary {
+  color: #aaa;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.news-loading,
+.news-empty {
+  color: #8888bb;
+  font-size: 14px;
+  text-align: center;
+  padding: 32px 0;
+}
+
+.news-filter {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.news-filter-btn {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  color: #8888bb;
+  padding: 4px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, color 0.15s;
+}
+.news-filter-btn:hover {
+  border-color: #4a4a8a;
+  color: #e0e0f0;
+}
+.news-filter-btn.active {
+  background: #2a2a4a;
+  border-color: #4a4a8a;
+  color: #e0e0f0;
+}
+</style>
+
 <script>
 function noteToggleCard(btn, event) {
   event.stopPropagation();

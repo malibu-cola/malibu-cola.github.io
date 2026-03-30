@@ -1,0 +1,20 @@
+sources:
+  - name: NASA
+    url: https://www.nasa.gov/rss/dyn/breaking_news.rss
+    color: "#0B3D91"
+    enabled: true
+
+  - name: JAXA
+    url: https://www.jaxa.jp/rss/press.rss
+    color: "#003087"
+    enabled: true
+
+  - name: sorae
+    url: https://sorae.info/feed
+    color: "#E85B2A"
+    enabled: true
+
+  - name: ESA
+    url: https://www.esa.int/rssfeed/Our_Activities/Space_Science
+    color: "#003247"
+    enabled: true
