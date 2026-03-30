@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>黒体輻射スペクトル</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --border: #1e2d45;
+    --accent: #f97316;
+    --accent2: #38bdf8;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --glow: rgba(249,115,22,0.2);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 20px 60px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  header h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+  }
+
+  .formula {
+    display: inline-block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-size: 1rem;
+    color: #94a3b8;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.04em;
+  }
+
+  .main {
+    width: 100%;
+    max-width: 980px;
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .canvas-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 16px 12px;
+  }
+
+  canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .axis-label-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 0.68rem;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .controls {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .ctrl-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 5px;
+    display: block;
+  }
+
+  .ctrl-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.45rem;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .ctrl-value span {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--glow);
+    cursor: pointer;
+    transition: transform 0.12s;
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.35); }
+
+  .peak-note {
+    margin-top: 6px;
+    font-size: 0.68rem;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    line-height: 1.5;
+  }
+
+  hr.div { border: none; border-top: 1px solid var(--border); }
+
+  .toggle-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.82rem;
+    color: #94a3b8;
+  }
+
+  /* Toggle switch */
+  .switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; display: inline-block; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .sw-track {
+    position: absolute; inset: 0;
+    background: var(--border);
+    border-radius: 20px;
+    transition: background 0.2s;
+  }
+  .sw-track::before {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    left: 3px; top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .switch input:checked + .sw-track { background: var(--accent2); }
+  .switch input:checked + .sw-track::before { transform: translateX(16px); }
+  .switch.orange input:checked + .sw-track { background: var(--accent); }
+
+  #legend {
+    font-size: 0.7rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    line-height: 2;
+  }
+
+  @media (max-width: 680px) {
+    .main { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>黒体輻射スペクトル — Planck Function</h1>
+  <div class="formula">B_ν(T) = (2hν³/c²) / (exp(hν/kT) − 1)</div>
+</header>
+
+<div class="main">
+  <div class="canvas-panel">
+    <canvas id="plot" width="720" height="430"></canvas>
+    <div class="axis-label-row">
+      <span id="xaxis-label">横軸: log ν [Hz]</span>
+      <span id="yaxis-label">縦軸: log Bν</span>
+    </div>
+  </div>
+
+  <div class="controls">
+
+    <div>
+      <span class="ctrl-label">温度 T</span>
+      <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:10px;">
+        <input type="number" id="T-input" value="2.73" min="0.5" max="30000" step="any"
+          style="
+            background: #0a0e1a;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--accent);
+            font-family: 'Space Mono', monospace;
+            font-size: 1.3rem;
+            width: 120px;
+            padding: 4px 8px;
+            outline: none;
+          ">
+        <span style="font-family:'Space Mono',monospace; font-size:0.85rem; color:var(--muted);">K</span>
+      </div>
+      <input type="range" id="T-slider" min="0" max="100" step="0.3" value="1.46">
+      <div class="peak-note" id="peak-note"></div>
+    </div>
+
+    <hr class="div">
+
+    <div>
+      <span class="ctrl-label">軸スケール</span>
+      <div class="toggle-group">
+        <label class="toggle-row">
+          <label class="switch">
+            <input type="checkbox" id="logx-check" checked>
+            <span class="sw-track"></span>
+          </label>
+          横軸 log ν
+        </label>
+        <label class="toggle-row">
+          <label class="switch">
+            <input type="checkbox" id="logy-check" checked>
+            <span class="sw-track"></span>
+          </label>
+          縦軸 log Bν
+        </label>
+      </div>
+    </div>
+
+    <hr class="div">
+
+    <div>
+      <span class="ctrl-label">X軸範囲  log ν [Hz]</span>
+      <div style="display:flex; gap:6px; align-items:center; margin-top:6px;">
+        <input type="number" id="xmin-input" value="7" min="1" max="20" step="0.5"
+          style="background:#0a0e1a;border:1px solid var(--border);border-radius:6px;color:var(--accent2);font-family:'Space Mono',monospace;font-size:1rem;width:60px;padding:3px 6px;outline:none;">
+        <span style="color:var(--muted);font-family:'Space Mono',monospace;">〜</span>
+        <input type="number" id="xmax-input" value="14" min="1" max="20" step="0.5"
+          style="background:#0a0e1a;border:1px solid var(--border);border-radius:6px;color:var(--accent2);font-family:'Space Mono',monospace;font-size:1rem;width:60px;padding:3px 6px;outline:none;">
+      </div>
+    </div>
+
+    <div>
+      <span class="ctrl-label">Y軸範囲  log Bν</span>
+      <label class="toggle-row" style="margin:6px 0 8px;">
+        <label class="switch">
+          <input type="checkbox" id="yauto-check" checked>
+          <span class="sw-track"></span>
+        </label>
+        自動
+      </label>
+      <div id="yrange-inputs" style="display:none; gap:6px; align-items:center;">
+        <input type="number" id="ymin-input" value="-30" step="1"
+          style="background:#0a0e1a;border:1px solid var(--border);border-radius:6px;color:var(--accent2);font-family:'Space Mono',monospace;font-size:1rem;width:60px;padding:3px 6px;outline:none;">
+        <span style="color:var(--muted);font-family:'Space Mono',monospace;">〜</span>
+        <input type="number" id="ymax-input" value="-10" step="1"
+          style="background:#0a0e1a;border:1px solid var(--border);border-radius:6px;color:var(--accent2);font-family:'Space Mono',monospace;font-size:1rem;width:60px;padding:3px 6px;outline:none;">
+      </div>
+    </div>
+
+    <hr class="div">
+
+    <div>
+      <span class="ctrl-label">比較表示</span>
+      <label class="toggle-row">
+        <label class="switch orange">
+          <input type="checkbox" id="overlay-check">
+          <span class="sw-track"></span>
+        </label>
+        複数温度を重ねて表示
+      </label>
+    </div>
+
+    <hr class="div">
+
+    <div id="legend"></div>
+
+  </div>
+</div>
+
+<script>
+const h = 6.626e-27, c = 2.998e10, k = 1.381e-16;
+
+function Bnu(nu, T) {
+  const x = h * nu / (k * T);
+  if (x > 700 || x < 1e-10) return 0;
+  return (2 * h * Math.pow(nu, 3) / (c * c)) / (Math.exp(x) - 1);
+}
+
+const T_MIN = 0.5, T_MAX = 30000;
+function sliderToT(v) { return T_MIN * Math.pow(T_MAX / T_MIN, v / 100); }
+
+function getXMin() { return parseFloat(document.getElementById('xmin-input').value) || 7; }
+function getXMax() { return parseFloat(document.getElementById('xmax-input').value) || 14; }
+function getXLinMin() { return Math.pow(10, getXMin()); }
+function getXLinMax() { return Math.pow(10, getXMax()); }
+const N = 800;
+
+const canvas = document.getElementById('plot');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const PAD = { top: 24, right: 24, bottom: 56, left: 84 };
+const PW = W - PAD.left - PAD.right;
+const PH = H - PAD.top - PAD.bottom;
+
+let currentT = 2.73, logX = true, logY = true, overlayMode = false;
+
+const overlayTemps  = [2.73, 50, 500, 5000, 20000];
+const overlayColors = ['#f97316','#facc15','#4ade80','#38bdf8','#c084fc'];
+
+function computePoints(T) {
+  const pts = [];
+  for (let i = 0; i <= N; i++) {
+    const nu = logX
+      ? Math.pow(10, getXMin() + (getXMax() - getXMin()) * i / N)
+      : getXLinMin() + (getXLinMax() - getXLinMin()) * i / N;
+    pts.push({ nu, b: Bnu(nu, T) });
+  }
+  return pts;
+}
+
+function getYRange(allPts) {
+  if (!document.getElementById('yauto-check').checked) {
+    const ymin = parseFloat(document.getElementById('ymin-input').value);
+    const ymax = parseFloat(document.getElementById('ymax-input').value);
+    return { bmin: Math.pow(10, ymin), bmax: Math.pow(10, ymax) };
+  }
+  let bmax = 0;
+  for (const pts of allPts)
+    for (const p of pts)
+      if (p.b > bmax) bmax = p.b;
+
+  if (logY) {
+    const logMax = Math.log10(bmax);
+    return { bmin: Math.pow(10, logMax - 12), bmax };
+  }
+  return { bmin: 0, bmax };
+}
+
+function nuToX(nu) {
+  if (logX) {
+    return PAD.left + (Math.log10(nu) - getXMin()) / (getXMax() - getXMin()) * PW;
+  }
+  return PAD.left + (nu - getXLinMin()) / (getXLinMax() - getXLinMin()) * PW;
+}
+
+function bToY(b, bmin, bmax) {
+  if (b <= 0) return PAD.top + PH + 10;
+  if (logY) {
+    const lb = Math.log10(b), lmin = Math.log10(bmin), lmax = Math.log10(bmax);
+    return PAD.top + PH - (lb - lmin) / (lmax - lmin) * PH;
+  }
+  return PAD.top + PH - (b - bmin) / (bmax - bmin) * PH;
+}
+
+function sup(n) {
+  const m={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  return String(n).split('').map(c=>m[c]||c).join('');
+}
+
+function drawGrid(bmin, bmax) {
+  ctx.save();
+
+  // --- X ticks ---
+  ctx.textAlign = 'center';
+  ctx.font = '10px Space Mono, monospace';
+  ctx.fillStyle = '#64748b';
+
+  if (logX) {
+    for (let e = Math.ceil(getXMin()); e <= getXMax(); e++) {
+      const x = nuToX(Math.pow(10, e));
+      ctx.strokeStyle = '#1e2d45'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + PH); ctx.stroke();
+      ctx.fillText('10', x - 7, PAD.top + PH + 15);
+      ctx.font = '8px Space Mono, monospace';
+      ctx.fillText(e, x + 7, PAD.top + PH + 10);
+      ctx.font = '10px Space Mono, monospace';
+    }
+    // minor
+    ctx.strokeStyle = '#161f30'; ctx.lineWidth = 0.5;
+    for (let e = Math.floor(getXMin()); e < getXMax(); e++)
+      for (let m = 2; m <= 9; m++) {
+        const x = nuToX(m * Math.pow(10, e));
+        ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + PH); ctx.stroke();
+      }
+  } else {
+    for (let i = 0; i <= 7; i++) {
+      const nu = getXLinMin() + (getXLinMax() - getXLinMin()) * i / 7;
+      const x = nuToX(nu);
+      ctx.strokeStyle = '#1e2d45'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + PH); ctx.stroke();
+      const e = Math.round(Math.log10(nu));
+      ctx.fillText('10' + sup(e), x, PAD.top + PH + 16);
+    }
+  }
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '12px Noto Sans JP, sans-serif';
+  ctx.fillText('ν  [Hz]', PAD.left + PW / 2, PAD.top + PH + 44);
+
+  // --- Y ticks ---
+  ctx.textAlign = 'right';
+  ctx.font = '10px Space Mono, monospace';
+  ctx.fillStyle = '#64748b';
+
+  if (logY) {
+    const lmin = Math.log10(bmin), lmax = Math.log10(bmax);
+    const step = 2;
+    const start = Math.ceil(lmin / step) * step;
+    for (let e = start; e <= lmax + 0.1; e += step) {
+      const y = bToY(Math.pow(10, e), bmin, bmax);
+      if (y < PAD.top || y > PAD.top + PH) continue;
+      ctx.strokeStyle = '#1e2d45'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + PW, y); ctx.stroke();
+      ctx.fillStyle = '#64748b';
+      ctx.fillText('10' + sup(Math.round(e)), PAD.left - 4, y + 4);
+    }
+  } else {
+    for (let i = 0; i <= 5; i++) {
+      const b = bmin + (bmax - bmin) * i / 5;
+      const y = bToY(b, bmin, bmax);
+      ctx.strokeStyle = '#1e2d45'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + PW, y); ctx.stroke();
+      ctx.fillStyle = '#64748b';
+      ctx.fillText(b === 0 ? '0' : b.toExponential(1), PAD.left - 4, y + 4);
+    }
+  }
+
+  // Y label
+  ctx.save();
+  ctx.translate(14, PAD.top + PH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '11px Noto Sans JP, sans-serif';
+  ctx.fillText('Bν  [erg s⁻¹ cm⁻² sr⁻¹ Hz⁻¹]', 0, 0);
+  ctx.restore();
+
+  ctx.restore();
+}
+
+function drawCurve(pts, bmin, bmax, color, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 7;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  let pen = false;
+  for (const p of pts) {
+    if (p.b <= 0) { pen = false; continue; }
+    const x = nuToX(p.nu);
+    const y = bToY(p.b, bmin, bmax);
+    if (y < PAD.top - 2 || y > PAD.top + PH + 2 || x < PAD.left - 1 || x > PAD.left + PW + 1) {
+      pen = false; continue;
+    }
+    pen ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    pen = true;
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(0, 0, W, H);
+
+  const temps  = overlayMode ? overlayTemps : [currentT];
+  const colors = overlayMode ? overlayColors : ['#f97316'];
+  const allPts = temps.map(T => computePoints(T));
+  const { bmin, bmax } = getYRange(allPts);
+
+  // clip & draw curves
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(PAD.left, PAD.top, PW, PH);
+  ctx.clip();
+  allPts.forEach((pts, i) => drawCurve(pts, bmin, bmax, colors[i], overlayMode ? 0.88 : 1));
+  ctx.restore();
+
+  drawGrid(bmin, bmax);
+
+  ctx.strokeStyle = '#2e4060';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(PAD.left, PAD.top, PW, PH);
+
+  // Labels
+  document.getElementById('xaxis-label').textContent = logX ? '横軸: log ν [Hz]' : '横軸: ν [Hz]';
+  document.getElementById('yaxis-label').textContent = logY ? '縦軸: log Bν' : '縦軸: Bν [erg s⁻¹ cm⁻² sr⁻¹ Hz⁻¹]';
+
+  // Legend
+  const leg = document.getElementById('legend');
+  leg.innerHTML = overlayMode
+    ? overlayTemps.map((T, i) =>
+        `<span style="color:${overlayColors[i]}">■</span> T = ${T < 1 ? T.toFixed(2) : T} K`
+      ).join('<br>')
+    : '';
+}
+
+function tToSlider(T) {
+  return Math.log(T / T_MIN) / Math.log(T_MAX / T_MIN) * 100;
+}
+
+function updateT() {
+  const v = parseFloat(document.getElementById('T-slider').value);
+  currentT = sliderToT(v);
+  document.getElementById('T-input').value = currentT < 10 ? currentT.toFixed(2) : Math.round(currentT);
+  const nuPeak = 5.879e10 * currentT;
+  document.getElementById('peak-note').textContent = `Wien peak: ν = ${nuPeak.toExponential(2)} Hz`;
+  draw();
+}
+
+function updateTFromInput() {
+  const val = parseFloat(document.getElementById('T-input').value);
+  if (isNaN(val) || val < T_MIN || val > T_MAX) return;
+  currentT = val;
+  document.getElementById('T-slider').value = tToSlider(val);
+  const nuPeak = 5.879e10 * currentT;
+  document.getElementById('peak-note').textContent = `Wien peak: ν = ${nuPeak.toExponential(2)} Hz`;
+  draw();
+}
+
+document.getElementById('T-slider').addEventListener('input', updateT);
+document.getElementById('T-input').addEventListener('change', updateTFromInput);
+document.getElementById('T-input').addEventListener('keydown', e => { if (e.key === 'Enter') updateTFromInput(); });
+document.getElementById('logx-check').addEventListener('change', e => {
+  logX = e.target.checked;
+  document.getElementById('xmin-input').value = 7;
+  document.getElementById('xmax-input').value = 14;
+  draw();
+});
+document.getElementById('logy-check').addEventListener('change', e => {
+  logY = e.target.checked;
+  document.getElementById('yauto-check').checked = true;
+  document.getElementById('yrange-inputs').style.display = 'none';
+  draw();
+});
+document.getElementById('overlay-check').addEventListener('change', e => { overlayMode = e.target.checked; draw(); });
+document.getElementById('xmin-input').addEventListener('change', draw);
+document.getElementById('xmax-input').addEventListener('change', draw);
+document.getElementById('ymin-input').addEventListener('change', draw);
+document.getElementById('ymax-input').addEventListener('change', draw);
+document.getElementById('yauto-check').addEventListener('change', e => {
+  document.getElementById('yrange-inputs').style.display = e.target.checked ? 'none' : 'flex';
+  draw();
+});
+
+updateT();
+</script>
+</body>
+</html>

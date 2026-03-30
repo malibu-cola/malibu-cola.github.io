@@ -7,12 +7,19 @@
    | sort: "path" %}
 
 {% if chapter_pages.size > 0 %}
-<ol style="line-height:2;">
+<div class="note-card-grid">
   {% for p in chapter_pages %}
   {% assign relative_path = p.path | remove: cur_dir %}
   {% unless relative_path contains '/' %}
-  <li><a href="{{ p.url | relative_url }}">{{ p.title }}</a></li>
+  <a class="note-card-link" href="{{ p.url | relative_url }}">
+    <div class="note-topic-card" style="cursor:pointer;">
+      <div class="note-card-image grad-astro"></div>
+      <div class="note-card-body">
+        <div class="note-card-name">{{ p.title }}</div>
+      </div>
+    </div>
+  </a>
   {% endunless %}
   {% endfor %}
-</ol>
+</div>
 {% endif %}
