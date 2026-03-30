@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import html.parser
 import json
-import os
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -20,7 +19,7 @@ LAUNCHES_JSON = REPO_ROOT / "_data" / "launches.json"
 MAX_ARTICLES = 50
 MAX_LAUNCHES = 15
 FETCH_TIMEOUT = 10
-LL2_API_URL = "https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=15&mode=list"
+LL2_API_URL = f"https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit={MAX_LAUNCHES}&mode=list"
 
 
 class _HTMLStripper(html.parser.HTMLParser):
@@ -117,7 +116,7 @@ def fetch_launches() -> list[dict]:
                 "status": status.get("abbrev", "TBD") if isinstance(status, dict) else "TBD",
                 "status_name": status.get("name", "To Be Determined") if isinstance(status, dict) else "To Be Determined",
                 "provider": item.get("lsp_name", ""),
-                "location": item.get("location", ""),
+                "location": item.get("location", "") if isinstance(item.get("location"), str) else (item.get("location", {}) or {}).get("name", ""),
                 "image": item.get("image", "") or "",
             }
         )
