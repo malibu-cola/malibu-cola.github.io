@@ -47,6 +47,53 @@
    <iframe src="/notebook/<notebook_name>.html" width="100%" height="800" style="border:1px solid #ccc; border-radius:4px;"></iframe>
    ```
 
+## クイズブロック (`quiz-block`)
+
+ノートページに4択クイズを埋め込む機能です。選択肢をクリックすると正誤が表示され、解説も合わせて表示されます。問題文・選択肢・解説はすべて MathJax の数式 (`$...$` / `$$...$$`) に対応しています。
+
+### 記法
+
+Markdown 内に以下の HTML ブロックを記述します。
+
+```html
+<div class="quiz-block">
+<script type="application/json">
+{
+  "question": "問題文。数式は $E = mc^2$ のように書けます。",
+  "choices": [
+    "選択肢A",
+    "選択肢B（数式可: $v = H_0 d$）",
+    "選択肢C",
+    "選択肢D"
+  ],
+  "answer": 1,
+  "explanation": "解説文。$$\\Delta E = h\\nu$$ のようにブロック数式も使えます。"
+}
+</script>
+</div>
+```
+
+| フィールド    | 型       | 説明                             |
+| ------------- | -------- | -------------------------------- |
+| `question`    | string   | 問題文                           |
+| `choices`     | string[] | 選択肢を4つ列挙                  |
+| `answer`      | number   | 正解のインデックス（0始まり）    |
+| `explanation` | string   | 正誤どちらの場合も表示される解説 |
+
+### 数式を含む JSON の注意点
+
+JSON 内ではバックスラッシュを `\\` とエスケープする必要があります。
+
+| MathJax 記法  | JSON に書く文字列 |
+| ------------- | ----------------- |
+| `\frac{a}{b}` | `"\\frac{a}{b}"`  |
+| `\log_{10}`   | `"\\log_{10}"`    |
+| `\left(`      | `"\\left("`       |
+
+`$...$` の `$` はエスケープ不要です。
+
+---
+
 ## 執筆メモ
 
 - 新しい記事は `_posts/YYYY-MM-DD-my-title.md` 形式で作成し、Front Matter に `layout: post` と `title`, `date` を指定。
