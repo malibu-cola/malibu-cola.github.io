@@ -228,6 +228,82 @@ button.note-toggle-header {
   border-color: #4a4a8a;
   color: #e0e0f0;
 }
+
+/* Launch Schedule */
+.launches-container { margin-top: 16px; }
+
+.launch-card {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  transition: border-color 0.15s;
+}
+.launch-card:hover { border-color: #4a4a8a; }
+
+.launch-card-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.launch-countdown {
+  flex-shrink: 0;
+  min-width: 80px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #e8c547;
+  padding: 6px 10px;
+  background: rgba(232, 197, 71, 0.1);
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.launch-info { flex: 1; min-width: 0; }
+
+.launch-name {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0e0f0;
+  line-height: 1.3;
+}
+
+.launch-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #8888bb;
+  margin-bottom: 2px;
+}
+
+.launch-provider::before { content: ""; margin-right: 4px; }
+.launch-location::before { content: ""; margin-right: 4px; }
+
+.launch-time {
+  font-size: 11px;
+  color: #666;
+}
+
+.launch-status {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.launch-status-go  { background: rgba(76, 175, 80, 0.15); color: #4caf50; }
+.launch-status-tbc { background: rgba(255, 193, 7, 0.15); color: #ffc107; }
+.launch-status-tbd { background: rgba(136, 136, 187, 0.1); color: #8888bb; }
+
+@media (max-width: 560px) {
+  .launch-card-main { flex-wrap: wrap; gap: 8px; }
+  .launch-countdown { min-width: auto; }
+}
 </style>
 
 <script>

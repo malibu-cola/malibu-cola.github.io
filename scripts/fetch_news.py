@@ -1,10 +1,11 @@
-"""Fetch space news from RSS feeds and generate news.json."""
+"""Fetch space news from RSS feeds and upcoming launches from Launch Library 2."""
 
 from __future__ import annotations
 
 import html.parser
 import json
 import os
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -14,12 +15,12 @@ from dateutil import parser as dateparser
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SOURCES_PATH = REPO_ROOT / "scripts" / "sources.yml"
-DATA_PATHS = [
-    REPO_ROOT / "_data" / "news.json",
-    REPO_ROOT / "assets" / "data" / "news.json",
-]
+NEWS_JSON = REPO_ROOT / "_data" / "news.json"
+LAUNCHES_JSON = REPO_ROOT / "_data" / "launches.json"
 MAX_ARTICLES = 50
+MAX_LAUNCHES = 15
 FETCH_TIMEOUT = 10
+LL2_API_URL = "https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=15&mode=list"
 
 
 class _HTMLStripper(html.parser.HTMLParser):
@@ -91,15 +92,42 @@ def fetch_feed(source: dict) -> list[dict]:
     return articles
 
 
-def save_json(articles: list[dict]) -> None:
-    for path in DATA_PATHS:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(articles, f, ensure_ascii=False, indent=2)
-        print(f"  Saved {path}")
+def save_json(data: list[dict], path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    print(f"  Saved {path}")
+
+
+# --- Launch Library 2 ---
+
+def fetch_launches() -> list[dict]:
+    """Fetch upcoming launches from Launch Library 2 API."""
+    req = urllib.request.Request(LL2_API_URL, headers={"User-Agent": "malibu-cola-news/1.0"})
+    with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+
+    launches = []
+    for item in data.get("results", []):
+        status = item.get("status") or {}
+        launches.append(
+            {
+                "name": item.get("name", ""),
+                "net": item.get("net", ""),
+                "status": status.get("abbrev", "TBD") if isinstance(status, dict) else "TBD",
+                "status_name": status.get("name", "To Be Determined") if isinstance(status, dict) else "To Be Determined",
+                "provider": item.get("lsp_name", ""),
+                "location": item.get("location", ""),
+                "image": item.get("image", "") or "",
+            }
+        )
+
+    print(f"  Launches: {len(launches)} upcoming")
+    return launches
 
 
 def main() -> None:
+    # --- News (RSS) ---
     print("Loading sources...")
     sources = load_sources()
 
@@ -114,12 +142,20 @@ def main() -> None:
         except Exception as e:
             print(f"  WARNING: {source['name']} failed: {e}")
 
-    # Sort by published date (newest first), limit to MAX_ARTICLES
     all_articles.sort(key=lambda x: x["published"], reverse=True)
     all_articles = all_articles[:MAX_ARTICLES]
 
     print(f"\nTotal: {len(all_articles)} articles")
-    save_json(all_articles)
+    save_json(all_articles, NEWS_JSON)
+
+    # --- Launches (Launch Library 2) ---
+    print("\nFetching upcoming launches...")
+    try:
+        launches = fetch_launches()
+        save_json(launches, LAUNCHES_JSON)
+    except Exception as e:
+        print(f"  WARNING: Launch Library 2 failed: {e}")
+
     print("Done.")
 
 

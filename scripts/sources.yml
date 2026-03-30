@@ -7,7 +7,7 @@ sources:
   - name: JAXA
     url: https://www.jaxa.jp/rss/press.rss
     color: "#003087"
-    enabled: true
+    enabled: false  # RSS feed discontinued by JAXA
 
   - name: sorae
     url: https://sorae.info/feed

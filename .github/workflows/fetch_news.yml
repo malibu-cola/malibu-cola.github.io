@@ -1,15 +1,26 @@
-name: Fetch Space News
+name: Build & Deploy with Space News
 
 on:
   schedule:
     - cron: '0 23 * * *'  # UTC 23:00 = JST 08:00
+  push:
+    branches: [main]
   workflow_dispatch:
 
+permissions:
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
-  fetch:
+  build-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
 
     steps:
       - uses: actions/checkout@v4
@@ -19,16 +30,28 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: pip install feedparser PyYAML python-dateutil
 
-      - name: Fetch RSS and generate news.json
+      - name: Fetch news and launches
         run: python scripts/fetch_news.py
 
-      - name: Commit and push if changed
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add _data/news.json assets/data/news.json
-          git diff --cached --quiet || git commit -m "chore: update news.json [skip ci]"
-          git push
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Build Jekyll site
+        run: bundle exec jekyll build
+        env:
+          JEKYLL_ENV: production
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site/
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
