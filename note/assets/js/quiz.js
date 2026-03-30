@@ -54,6 +54,15 @@
   function onSelect(block, selected, correct, explanation) {
     var buttons = block.querySelectorAll('.quiz-choice');
 
+    // boundary check for answer index
+    if (correct < 0 || correct >= buttons.length) {
+      var fEl = block.querySelector('.quiz-feedback');
+      fEl.className = 'quiz-feedback quiz-verdict-incorrect';
+      fEl.innerHTML =
+        '<div class="quiz-verdict-label">&#9888; エラー: 解答インデックスが範囲外です (answer=' + correct + ', choices=' + buttons.length + ')</div>';
+      return;
+    }
+
     // disable all choices
     buttons.forEach(function (btn) {
       btn.disabled = true;
